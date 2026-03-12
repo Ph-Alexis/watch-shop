@@ -4,6 +4,7 @@ import Cart from "./pages/Cart";
 import Home from "./pages/Home";
 import { CartProvider } from "./context/CartContext";
 import ProductDetail from "./pages/ProductDetail";
+import Footer from "./components/Footer";
 
 function App() {
   return (
@@ -16,6 +17,8 @@ function App() {
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
         </Routes>
+
+        <Footer />
       </BrowserRouter>
     </CartProvider>
   );
