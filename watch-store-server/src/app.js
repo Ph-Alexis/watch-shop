@@ -1,0 +1,17 @@
+const express = require("express");
+const cors = require("cors");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.send("Watch Store API Running...");
+});
+
+module.exports = app;
+
+const productRoutes = require("./routes/productRoutes");
+
+app.use("/api/products", productRoutes);
