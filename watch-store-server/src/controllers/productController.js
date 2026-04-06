@@ -1,28 +1,15 @@
 const Product = require("../models/Product");
 
-// GET products (pagination)
-exports.getProducts = async (req, res) => {
+const getProducts = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = 12;
-    const skip = (page - 1) * limit;
-
-    const totalProducts = await Product.countDocuments();
-
-    const products = await Product.find().skip(skip).limit(limit);
-
-    res.json({
-      products,
-      totalPages: Math.ceil(totalProducts / limit),
-      currentPage: page,
-    });
+    const products = await Product.find().sort({ createdAt: -1 });
+    res.json(products);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Get products failed" });
   }
 };
 
-// GET product detail
-exports.getProductById = async (req, res) => {
+const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
@@ -32,39 +19,26 @@ exports.getProductById = async (req, res) => {
 
     res.json(product);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Get product failed" });
   }
 };
 
-// CREATE product
-exports.createProduct = async (req, res) => {
-  try {
-    const product = await Product.create(req.body);
-    res.json(product);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+const createProduct = async (req, res) => {
+  res.json({ message: "Create product" });
 };
 
-// UPDATE product
-exports.updateProduct = async (req, res) => {
-  try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-
-    res.json(product);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+const updateProduct = async (req, res) => {
+  res.json({ message: "Update product" });
 };
 
-// DELETE product
-exports.deleteProduct = async (req, res) => {
-  try {
-    await Product.findByIdAndDelete(req.params.id);
-    res.json({ message: "Deleted" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+const deleteProduct = async (req, res) => {
+  res.json({ message: "Delete product" });
+};
+
+module.exports = {
+  getProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
 };

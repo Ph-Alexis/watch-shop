@@ -1,51 +1,83 @@
-import { createContext, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-export const CartContext = createContext();
+const CartContext = createContext();
 
-export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
+export function CartProvider({ children }) {
+  const [cartItems, setCartItems] = useState([]);
 
-  // thêm sản phẩm
-  const addToCart = (product) => {
-    const exist = cart.find((item) => item._id === product._id);
-
-    if (exist) {
-      setCart(
-        cart.map((item) =>
-          item._id === product._id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        ),
-      );
-    } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
+  useEffect(() => {
+    const savedCart = localStorage.getItem("cartItems");
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
     }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  const addToCart = (product, quantity = 1) => {
+    setCartItems((prev) => {
+      const existingItem = prev.find((item) => item._id === product._id);
+
+      if (existingItem) {
+        return prev.map((item) =>
+          item._id === product._id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item,
+        );
+      }
+
+      return [...prev, { ...product, quantity }];
+    });
   };
 
-  // xóa sản phẩm
-  const removeFromCart = (id) => {
-    setCart(cart.filter((item) => item._id !== id));
+  const removeFromCart = (productId) => {
+    setCartItems((prev) => prev.filter((item) => item._id !== productId));
   };
 
-  // cập nhật số lượng
-  const updateQuantity = (id, quantity) => {
-    setCart(
-      cart.map((item) =>
-        item._id === id ? { ...item, quantity: quantity } : item,
+  const updateQuantity = (productId, quantity) => {
+    if (quantity < 1) return;
+
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item._id === productId ? { ...item, quantity: Number(quantity) } : item,
       ),
     );
   };
 
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  const cartCount = useMemo(() => {
+    return cartItems.reduce((total, item) => total + item.quantity, 0);
+  }, [cartItems]);
+
+  const cartTotal = useMemo(() => {
+    return cartItems.reduce(
+      (total, item) => total + Number(item.price) * Number(item.quantity),
+      0,
+    );
+  }, [cartItems]);
+
   return (
     <CartContext.Provider
       value={{
-        cart,
+        cartItems,
         addToCart,
         removeFromCart,
         updateQuantity,
+        clearCart,
+        cartCount,
+        cartTotal,
       }}
     >
       {children}
     </CartContext.Provider>
   );
-};
+}
+
+export function useCart() {
+  return useContext(CartContext);
+}
