@@ -14,6 +14,16 @@ const categorySchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    group: {
+      type: String,
+      default: "general",
+      trim: true,
+    },
+    value: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     description: {
       type: String,
       default: "",
