@@ -6,15 +6,18 @@ import App from "./App";
 import "./index.css";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import { WebsiteSettingsProvider } from "./context/WebsiteSettingsContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <HelmetProvider>
       <BrowserRouter>
         <AuthProvider>
-          <CartProvider>
-            <App />
-          </CartProvider>
+          <WebsiteSettingsProvider>
+            <CartProvider>
+              <App />
+            </CartProvider>
+          </WebsiteSettingsProvider>
         </AuthProvider>
       </BrowserRouter>
     </HelmetProvider>
