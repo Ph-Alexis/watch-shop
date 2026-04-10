@@ -4,6 +4,7 @@ import { useWebsiteSettings } from "../../context/WebsiteSettingsContext";
 
 const INITIAL_FORM = {
   siteName: "",
+  footerDescription: "",
   logoUrl: "",
   contactEmail: "",
   contactPhone: "",
@@ -179,6 +180,15 @@ function AdminSettingsPage() {
       padding: "10px 12px",
       outline: "none",
     },
+    textarea: {
+      border: "1px solid #d0d5dd",
+      borderRadius: "8px",
+      padding: "10px 12px",
+      outline: "none",
+      minHeight: "84px",
+      resize: "vertical",
+      fontFamily: "inherit",
+    },
     logoPreviewBox: {
       marginTop: "10px",
       width: "220px",
@@ -272,6 +282,16 @@ function AdminSettingsPage() {
                 value={form.logoUrl}
                 onChange={handleChange("logoUrl")}
                 placeholder="https://..."
+                disabled={loading}
+              />
+            </div>
+            <div style={{ ...styles.field, gridColumn: "1 / -1" }}>
+              <label style={styles.label}>Mô tả Footer</label>
+              <textarea
+                style={styles.textarea}
+                value={form.footerDescription}
+                onChange={handleChange("footerDescription")}
+                placeholder="Cửa hàng đồng hồ chính hãng với nhiều mẫu mã hiện đại, phù hợp cho mọi phong cách."
                 disabled={loading}
               />
             </div>
