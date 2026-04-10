@@ -5,6 +5,7 @@ import { createProductApi } from "../../api/productApi";
 function AdminProductCreatePage() {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [imageFileName, setImageFileName] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -18,7 +19,25 @@ function AdminProductCreatePage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "image") setImageFileName("");
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Vui lòng chọn file ảnh hợp lệ.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      setFormData((prev) => ({ ...prev, image: result }));
+      setImageFileName(file.name);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
@@ -95,6 +114,27 @@ function AdminProductCreatePage() {
       marginRight: "12px",
       fontWeight: "bold",
     },
+    uploadRow: {
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      marginTop: "12px",
+      flexWrap: "wrap",
+    },
+    uploadBtn: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#111827",
+      color: "#fff",
+      borderRadius: "8px",
+      padding: "10px 14px",
+      cursor: "pointer",
+      fontWeight: "bold",
+      border: "none",
+      fontSize: "14px",
+    },
+    uploadHint: { fontSize: "12px", color: "#666" },
   };
 
   return (
@@ -184,6 +224,21 @@ function AdminProductCreatePage() {
             onChange={handleChange}
             placeholder="https://..."
           />
+          <div style={styles.uploadRow}>
+            <label htmlFor="create-image-upload" style={styles.uploadBtn}>
+              Chọn ảnh từ thiết bị
+            </label>
+            <input
+              id="create-image-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleImageFileChange}
+              style={{ display: "none" }}
+            />
+            <span style={styles.uploadHint}>
+              {imageFileName || "Hỗ trợ JPG, PNG, WEBP..."}
+            </span>
+          </div>
           {formData.image ? (
             <div style={{ marginTop: "15px" }}>
               <p style={{ fontSize: "12px", color: "#888" }}>Xem trước ảnh:</p>
