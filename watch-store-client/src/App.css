@@ -122,7 +122,6 @@ img {
 }
 
 .mega-nav-item:hover .mega-menu,
-.mega-nav-item:focus-within .mega-menu,
 .mega-menu:hover {
   opacity: 1;
   visibility: visible;
