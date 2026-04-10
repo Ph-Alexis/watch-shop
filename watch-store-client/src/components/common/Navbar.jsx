@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { getCategoriesApi } from "../../api/categoryApi";
+import { getProductsApi } from "../../api/productApi";
 import { useWebsiteSettings } from "../../context/WebsiteSettingsContext";
 
 function Navbar() {
@@ -11,6 +12,8 @@ function Navbar() {
   const { settings } = useWebsiteSettings();
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const [productCategoryFallback, setProductCategoryFallback] = useState([]);
+  const [productBrandFallback, setProductBrandFallback] = useState([]);
 
   const handleLogout = () => {
     logout();
@@ -22,7 +25,7 @@ function Navbar() {
     const fetchCategories = async () => {
       try {
         const response = await getCategoriesApi({ autoSync: true });
-        const list = Array.isArray(response?.data) ? response.data : [];
+        const list = response?.data?.data ?? response?.data ?? [];
         setCategories(list);
       } catch (error) {
         console.error("Get categories failed:", error);
@@ -30,6 +33,33 @@ function Navbar() {
     };
 
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchProductCategoriesFallback = async () => {
+      try {
+        const response = await getProductsApi();
+        const list = response?.data?.data ?? response?.data ?? [];
+        const names = [...new Set(
+          (Array.isArray(list) ? list : [])
+            .map((product) => product?.category?.name || product?.category || "")
+            .map((name) => (typeof name === "string" ? name.trim() : ""))
+            .filter(Boolean),
+        )];
+        const brands = [...new Set(
+          (Array.isArray(list) ? list : [])
+            .map((product) => product?.brand || "")
+            .map((name) => (typeof name === "string" ? name.trim() : ""))
+            .filter(Boolean),
+        )];
+        setProductCategoryFallback(names);
+        setProductBrandFallback(brands);
+      } catch (error) {
+        console.error("Get product categories fallback failed:", error);
+      }
+    };
+
+    fetchProductCategoriesFallback();
   }, []);
 
   const genderCategories = useMemo(
@@ -61,8 +91,8 @@ function Navbar() {
         </Link>
 
         <nav className="nav-links">
-          <Link to="/">Home</Link>
-          <Link to="/products">Watches</Link>
+          <Link to="/">Trang chủ</Link>
+          <Link to="/products">Đồng hồ</Link>
           <div className="mega-nav-item" tabIndex={0}>
             <span className="mega-trigger" aria-haspopup="true">
               Danh mục
@@ -71,7 +101,15 @@ function Navbar() {
               <div className="mega-col">
                 <p className="mega-title">DÀNH CHO</p>
                 {genderCategories.length === 0 ? (
-                  <p className="mega-empty">Đang cập nhật</p>
+                  productCategoryFallback.length > 0 ? (
+                    productCategoryFallback.map((name) => (
+                      <Link key={name} to={buildProductFilterLink("category", name)}>
+                        {name}
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="mega-empty">Đang cập nhật</p>
+                  )
                 ) : (
                   genderCategories.map((item) => (
                     <Link
@@ -86,7 +124,15 @@ function Navbar() {
               <div className="mega-col">
                 <p className="mega-title">THƯƠNG HIỆU</p>
                 {brandCategories.length === 0 ? (
-                  <p className="mega-empty">Đang cập nhật</p>
+                  productBrandFallback.length > 0 ? (
+                    productBrandFallback.map((name) => (
+                      <Link key={name} to={buildProductFilterLink("brand", name)}>
+                        {name}
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="mega-empty">Đang cập nhật</p>
+                  )
                 ) : (
                   brandCategories.map((item) => (
                     <Link
@@ -100,7 +146,7 @@ function Navbar() {
               </div>
             </div>
           </div>
-          <Link to="/contact">Contact</Link>
+          <Link to="/contact">Liên hệ</Link>
           {user?.role === "admin" && <Link to="/admin">Admin</Link>}
         </nav>
 
