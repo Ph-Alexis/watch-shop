@@ -8,7 +8,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const settingRoutes = require("./routes/settingRoutes");
-
+const paymentSettingRoutes = require("./routes/paymentSettingRoutes");
 const notFoundMiddleware = require("./middleware/notFoundMiddleware");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
@@ -36,7 +36,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/customers", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/settings", settingRoutes);
-
+app.use("/api/payment-setting", paymentSettingRoutes);
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 

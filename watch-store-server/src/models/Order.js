@@ -26,7 +26,7 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["COD"],
+      enum: ["COD", "QR"],
       default: "COD",
     },
     paymentStatus: {
