@@ -68,6 +68,95 @@ img {
   color: white;
 }
 
+.mega-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: #e5e7eb;
+  padding: 8px 0;
+  outline: none;
+}
+
+.mega-trigger {
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.mega-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    visibility 0.16s ease;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 24px;
+  min-width: 420px;
+  height: auto;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 18px;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 12px 24px rgba(17, 24, 39, 0.2);
+  z-index: 120;
+}
+
+.mega-nav-item::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 14px;
+}
+
+.mega-nav-item:hover .mega-menu,
+.mega-nav-item:focus-within .mega-menu,
+.mega-menu:hover {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.mega-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mega-title {
+  margin: 0 0 6px;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mega-col a {
+  color: #111827;
+}
+
+.mega-col a:hover {
+  color: #2563eb;
+}
+
+.mega-empty {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
 .nav-actions {
   display: flex;
   align-items: center;
@@ -138,6 +227,12 @@ img {
   display: flex;
   justify-content: center;
   margin-bottom: 32px;
+}
+
+.active-filters {
+  margin: -12px 0 24px;
+  color: #4b5563;
+  text-align: center;
 }
 
 .search-input,
@@ -348,6 +443,16 @@ img {
   .nav-links,
   .nav-actions {
     flex-wrap: wrap;
+  }
+
+  .mega-menu {
+    position: static;
+    min-width: 100%;
+    margin-top: 10px;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
   }
 
   .page-header h1 {
