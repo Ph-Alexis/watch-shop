@@ -17,8 +17,8 @@ function Footer() {
         <div className="footer-col">
           <h2 className="footer-logo">{settings?.siteName || "WatchStore"}</h2>
           <p className="footer-desc">
-            Cửa hàng đồng hồ chính hãng với nhiều mẫu mã hiện đại, phù hợp cho
-            mọi phong cách.
+            {settings?.footerDescription ||
+              "Cửa hàng đồng hồ chính hãng với nhiều mẫu mã hiện đại, phù hợp cho mọi phong cách."}
           </p>
         </div>
 
