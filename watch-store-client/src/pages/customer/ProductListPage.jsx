@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import SEO from "../../components/common/SEO";
 import { getProductsApi } from "../../api/productApi";
 import { useCart } from "../../context/CartContext";
@@ -9,16 +9,23 @@ function ProductListPage() {
   const [products, setProducts] = useState([]);
   const [keyword, setKeyword] = useState("");
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
 
   const { addToCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const activeCategory = (searchParams.get("category") || "").trim().toLowerCase();
+  const activeBrand = (searchParams.get("brand") || "").trim().toLowerCase();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await getProductsApi();
-        setProducts(res.data);
+        const list = res?.data?.data ?? res?.data ?? [];
+        const visible = (Array.isArray(list) ? list : []).filter(
+          (p) => p?.status !== "Ẩn",
+        );
+        setProducts(visible);
       } catch (error) {
         console.error("Get products failed:", error);
       } finally {
@@ -38,9 +45,15 @@ function ProductListPage() {
     addToCart(product, 1);
   };
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(keyword.toLowerCase()),
-  );
+  const filteredProducts = products.filter((product) => {
+    const productName = (product?.name || "").toLowerCase();
+    const productCategory = (product?.category || "").trim().toLowerCase();
+    const productBrand = (product?.brand || "").trim().toLowerCase();
+    const byKeyword = productName.includes(keyword.toLowerCase());
+    const byCategory = !activeCategory || productCategory === activeCategory;
+    const byBrand = !activeBrand || productBrand === activeBrand;
+    return byKeyword && byCategory && byBrand;
+  });
 
   return (
     <>
@@ -65,6 +78,14 @@ function ProductListPage() {
               className="search-input"
             />
           </div>
+          {(activeCategory || activeBrand) && (
+            <p className="active-filters">
+              Bộ lọc:
+              {activeCategory ? ` Danh mục ${activeCategory}` : ""}
+              {activeCategory && activeBrand ? " | " : ""}
+              {activeBrand ? ` Thương hiệu ${activeBrand}` : ""}
+            </p>
+          )}
 
           {loading ? (
             <p className="page-message">Đang tải sản phẩm...</p>
