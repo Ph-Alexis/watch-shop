@@ -20,7 +20,12 @@ function ProductDetail() {
     const fetchProduct = async () => {
       try {
         const res = await getProductByIdApi(id);
-        setProduct(res.data);
+        const data = res?.data?.data ?? res?.data;
+        if (data?.status === "Ẩn") {
+          setProduct(null);
+          return;
+        }
+        setProduct(data);
       } catch (error) {
         console.error("Get product detail failed:", error);
       } finally {
