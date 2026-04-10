@@ -2,16 +2,22 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import SEO from "../../components/common/SEO";
 import { getProductsApi } from "../../api/productApi";
+import { useWebsiteSettings } from "../../context/WebsiteSettingsContext";
 
 function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { settings } = useWebsiteSettings();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await getProductsApi();
-        setProducts(res.data.slice(0, 4));
+        const list = res?.data?.data ?? res?.data ?? [];
+        const visible = (Array.isArray(list) ? list : []).filter(
+          (p) => p?.status !== "Ẩn",
+        );
+        setProducts(visible.slice(0, 4));
       } catch (error) {
         console.error("Get featured products failed:", error);
       } finally {
@@ -46,6 +52,23 @@ function Home() {
               <Link to="/contact" className="hero-btn secondary">
                 Liên hệ
               </Link>
+            </div>
+            <div style={{ marginTop: "14px", display: "flex", gap: "10px" }}>
+              {settings?.facebookUrl ? (
+                <a href={settings.facebookUrl} target="_blank" rel="noreferrer">
+                  Facebook
+                </a>
+              ) : null}
+              {settings?.instagramUrl ? (
+                <a href={settings.instagramUrl} target="_blank" rel="noreferrer">
+                  Instagram
+                </a>
+              ) : null}
+              {settings?.tiktokUrl ? (
+                <a href={settings.tiktokUrl} target="_blank" rel="noreferrer">
+                  TikTok
+                </a>
+              ) : null}
             </div>
           </div>
 
