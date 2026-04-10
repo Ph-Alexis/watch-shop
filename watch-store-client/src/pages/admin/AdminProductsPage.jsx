@@ -35,7 +35,7 @@ function AdminProductsPage() {
       alert("Đã xóa sản phẩm thành công!");
     } catch (err) {
       console.error("Lỗi khi xóa:", err);
-      alert("Ối, có lỗi rồi! Không xóa được sản phẩm này Trâm ơi.");
+      alert("Ối, có lỗi rồi! Không xóa được sản phẩm này.");
     }
   };
 
@@ -106,7 +106,9 @@ btnEdit: { border: '1px solid #3498db', color: '#3498db', background: 'none', pa
                   <div style={{fontWeight: 'bold'}}>{p.name || p.title}</div>
                   <div style={{fontSize: '11px', color: '#aaa'}}>ID: #{String(p.id || p._id).slice(-6)}</div>
                 </td>
-                <td style={styles.td}>{p.category?.name || "Luxury Watch"}</td>
+                <td style={styles.td}>
+                  {p.category?.name || p.category || "Luxury Watch"}
+                </td>
                 <td style={{...styles.td, fontWeight: 'bold', color: '#e74c3c'}}>
                   {Number(p.price).toLocaleString()}₫
                 </td>
