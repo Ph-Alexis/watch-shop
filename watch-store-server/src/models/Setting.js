@@ -14,6 +14,11 @@ const settingSchema = new mongoose.Schema(
       default: "WatchStore",
       trim: true,
     },
+    footerDescription: {
+      type: String,
+      default: "Cửa hàng đồng hồ chính hãng với nhiều mẫu mã hiện đại, phù hợp cho mọi phong cách.",
+      trim: true,
+    },
     logoUrl: {
       type: String,
       default: "",
