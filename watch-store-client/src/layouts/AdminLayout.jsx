@@ -4,9 +4,12 @@ import { useCart } from "../context/CartContext";
 
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import AdminProductsPage from "../pages/admin/AdminProductsPage";
+import AdminProductCreatePage from "../pages/admin/AdminProductCreatePage";
+import AdminProductEditPage from "../pages/admin/AdminProductEditPage";
 import AdminOrdersPage from "../pages/admin/AdminOrdersPage";
+import AdminOrderDetailPage from "../pages/admin/AdminOrderDetailPage";
 import AdminCustomersPage from "../pages/admin/AdminCustomersPage";
-import AdminCategoriesPage from "../pages/admin/AdminCategoriesPage";
+import AdminSettingsPage from "../pages/admin/AdminSettingsPage";
 
 function AdminLayout() {
   const { user, logout } = useAuth();
@@ -41,16 +44,19 @@ function AdminLayout() {
           <Link to="/admin/products">Products</Link>
           <Link to="/admin/orders">Orders</Link>
           <Link to="/admin/customers">Customers</Link>
-          <Link to="/admin/categories">Categories</Link>
+          <Link to="/admin/settings">Settings</Link>
         </nav>
 
         <div className="admin-box">
           <Routes>
             <Route index element={<AdminDashboardPage />} />
             <Route path="products" element={<AdminProductsPage />} />
+            <Route path="products/create" element={<AdminProductCreatePage />} />
+            <Route path="products/:id/edit" element={<AdminProductEditPage />} />
             <Route path="orders" element={<AdminOrdersPage />} />
+            <Route path="orders/:id" element={<AdminOrderDetailPage />} />
             <Route path="customers" element={<AdminCustomersPage />} />
-            <Route path="categories" element={<AdminCategoriesPage />} />
+            <Route path="settings" element={<AdminSettingsPage />} />
           </Routes>
         </div>
       </div>
