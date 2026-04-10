@@ -40,11 +40,11 @@ function AdminLayout() {
         </div>
 
         <nav className="admin-nav">
-          <Link to="/admin">Dashboard</Link>
-          <Link to="/admin/products">Products</Link>
-          <Link to="/admin/orders">Orders</Link>
-          <Link to="/admin/customers">Customers</Link>
-          <Link to="/admin/settings">Settings</Link>
+          <Link to="/admin">Tổng quan</Link>
+          <Link to="/admin/products">Sản phẩm</Link>
+          <Link to="/admin/orders">Đơn hàng</Link>
+          <Link to="/admin/customers">Khách hàng</Link>
+          <Link to="/admin/settings">Cài đặt</Link>
         </nav>
 
         <div className="admin-box">
