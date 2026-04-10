@@ -6,6 +6,7 @@ function AdminProductEditPage() {
   const { id } = useParams(); 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [imageFileName, setImageFileName] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -14,10 +15,9 @@ function AdminProductEditPage() {
     stock: "",
     image: "",
     description: "",
-    status: "Hiện" // Giá trị mặc định
+    status: "Hiện"
   });
 
-  // 1. Lấy dữ liệu cũ từ server
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -38,7 +38,7 @@ function AdminProductEditPage() {
         }
       } catch (err) {
         console.error("Lỗi lấy dữ liệu:", err);
-        alert("Không tìm thấy sản phẩm này Trâm ơi!");
+        alert("Không tìm thấy sản phẩm này ơi!");
       } finally {
         setLoading(false);
       }
@@ -46,27 +46,42 @@ function AdminProductEditPage() {
     fetchProduct();
   }, [id]);
 
-  // 2. Hàm thay đổi dữ liệu (Dùng chung cho input, textarea và select)
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "image") setImageFileName("");
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 3. Hàm Lưu thay đổi
+  const handleImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Vui lòng chọn file ảnh hợp lệ.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      setFormData((prev) => ({ ...prev, image: result }));
+      setImageFileName(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Đảm bảo gửi đủ price, category, brand (và các field khác đang có)
       await updateProductApi(id, {
         ...formData,
         price: Number(formData.price),
         stock: Number(formData.stock),
       });
       alert("Cập nhật sản phẩm thành công!");
-      navigate("/admin/products"); // Sửa xong quay về trang danh sách
+      navigate("/admin/products");
     } catch (err) {
       console.error("Lỗi lưu:", err);
-      alert("Lỗi rồi! Không lưu được thay đổi đâu Trâm.");
+      alert("Lỗi rồi! Không lưu được thay đổi đâu.");
     }
   };
 
@@ -80,7 +95,10 @@ function AdminProductEditPage() {
     input: { width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '15px', boxSizing: 'border-box' },
     row: { display: 'flex', gap: '20px' },
     btnSubmit: { backgroundColor: '#000', color: '#fff', padding: '14px 30px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s' },
-    btnCancel: { backgroundColor: '#f1f3f5', color: '#495057', padding: '14px 30px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginRight: '12px', fontWeight: 'bold' }
+    btnCancel: { backgroundColor: '#f1f3f5', color: '#495057', padding: '14px 30px', border: 'none', borderRadius: '8px', cursor: 'pointer', marginRight: '12px', fontWeight: 'bold' },
+    uploadRow: { display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px', flexWrap: 'wrap' },
+    uploadBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#111827', color: '#fff', borderRadius: '8px', padding: '10px 14px', cursor: 'pointer', fontWeight: 'bold', border: 'none', fontSize: '14px' },
+    uploadHint: { fontSize: '12px', color: '#666' }
   };
 
   return (
@@ -143,6 +161,21 @@ function AdminProductEditPage() {
         <div style={styles.formGroup}>
           <label style={styles.label}>Link hình ảnh:</label>
           <input style={styles.input} name="image" value={formData.image} onChange={handleChange} />
+          <div style={styles.uploadRow}>
+            <label htmlFor="edit-image-upload" style={styles.uploadBtn}>
+              Chọn ảnh từ thiết bị
+            </label>
+            <input
+              id="edit-image-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleImageFileChange}
+              style={{ display: 'none' }}
+            />
+            <span style={styles.uploadHint}>
+              {imageFileName || "Hỗ trợ JPG, PNG, WEBP..."}
+            </span>
+          </div>
           {formData.image && (
             <div style={{marginTop: '15px'}}>
               <p style={{fontSize: '12px', color: '#888'}}>Xem trước ảnh:</p>
