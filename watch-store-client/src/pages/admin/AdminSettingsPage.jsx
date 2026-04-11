@@ -1,5 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { QRCodeCanvas } from "qrcode.react";
 import { getSettingsApi, updateSettingsApi } from "../../api/settingApi";
+import {
+  getPaymentSettingApi,
+  updatePaymentSettingApi,
+} from "../../api/paymentSettingApi";
 import { useWebsiteSettings } from "../../context/WebsiteSettingsContext";
 
 const INITIAL_FORM = {
@@ -13,6 +18,30 @@ const INITIAL_FORM = {
   instagramUrl: "",
   tiktokUrl: "",
 };
+
+const INITIAL_PAYMENT_FORM = {
+  bankName: "",
+  accountNumber: "",
+  accountName: "",
+  transferContent: "",
+  qrImage: "",
+  isQrEnabled: true,
+};
+
+/** Tổng tiền ví dụ cho chuỗi QR — trên Checkout sẽ là tổng giỏ hàng thực tế. */
+const PREVIEW_ORDER_TOTAL = 500000;
+
+const mapPaymentFromApi = (data) => ({
+  bankName: data?.bankName ?? "",
+  accountNumber: data?.accountNumber ?? "",
+  accountName: data?.accountName ?? "",
+  transferContent: data?.transferContent ?? "",
+  qrImage: data?.qrImage ?? "",
+  isQrEnabled: data?.isQrEnabled !== false,
+});
+
+const buildQrPayloadString = (p) =>
+  `WATCHSTORE|BANK:${p.bankName}|ACCOUNT:${p.accountNumber}|NAME:${p.accountName}|AMOUNT:${PREVIEW_ORDER_TOTAL}|NOTE:${p.transferContent}`;
 
 const getErrorDetail = (error, fallbackText) => {
   const status = error?.response?.status;
@@ -44,6 +73,23 @@ function AdminSettingsPage() {
   const [selectedLogoFile, setSelectedLogoFile] = useState(null);
   const fileInputRef = useRef(null);
 
+  const [paymentForm, setPaymentForm] = useState(INITIAL_PAYMENT_FORM);
+  const [initialPaymentForm, setInitialPaymentForm] = useState(
+    INITIAL_PAYMENT_FORM,
+  );
+  const [paymentSaving, setPaymentSaving] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(true);
+  const [paymentMessage, setPaymentMessage] = useState("");
+  const [paymentIsError, setPaymentIsError] = useState(false);
+  /** Snapshot cho khung xem trước — chỉ đổi khi tải/lưu/hủy hoặc chọn/xóa ảnh QR, không đổi khi gõ nội dung form. */
+  const [qrPreviewSnapshot, setQrPreviewSnapshot] = useState(null);
+  const qrFileInputRef = useRef(null);
+
+  const previewQrContent = useMemo(() => {
+    const snap = qrPreviewSnapshot ?? INITIAL_PAYMENT_FORM;
+    return buildQrPayloadString(snap);
+  }, [qrPreviewSnapshot]);
+
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -66,8 +112,94 @@ function AdminSettingsPage() {
     fetchSettings();
   }, []);
 
+  useEffect(() => {
+    const fetchPayment = async () => {
+      try {
+        setPaymentLoading(true);
+        const paymentRes = await getPaymentSettingApi();
+        const paymentMerged = mapPaymentFromApi(paymentRes?.data);
+        setPaymentForm(paymentMerged);
+        setInitialPaymentForm(paymentMerged);
+        setQrPreviewSnapshot(paymentMerged);
+        setPaymentMessage("");
+        setPaymentIsError(false);
+        if (qrFileInputRef.current) qrFileInputRef.current.value = "";
+      } catch (error) {
+        console.error("Get payment setting failed:", error);
+        setPaymentIsError(true);
+        setPaymentMessage(
+          getErrorDetail(error, "Không thể tải cấu hình thanh toán"),
+        );
+      } finally {
+        setPaymentLoading(false);
+      }
+    };
+
+    fetchPayment();
+  }, []);
+
   const handleChange = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
+  };
+
+  const handlePaymentChange = (field) => (event) => {
+    setPaymentForm((prev) => ({ ...prev, [field]: event.target.value }));
+  };
+
+  const handleQrImageUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || "");
+      setPaymentForm((prev) => ({ ...prev, qrImage: dataUrl }));
+      setQrPreviewSnapshot((prev) => ({
+        ...(prev ?? INITIAL_PAYMENT_FORM),
+        qrImage: dataUrl,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClearQrImage = () => {
+    setPaymentForm((prev) => ({ ...prev, qrImage: "" }));
+    setQrPreviewSnapshot((prev) => ({
+      ...(prev ?? INITIAL_PAYMENT_FORM),
+      qrImage: "",
+    }));
+    if (qrFileInputRef.current) qrFileInputRef.current.value = "";
+  };
+
+  const handlePaymentCancel = () => {
+    setPaymentForm(initialPaymentForm);
+    setQrPreviewSnapshot(initialPaymentForm);
+    setPaymentMessage("Đã khôi phục cấu hình thanh toán ban đầu.");
+    setPaymentIsError(false);
+    if (qrFileInputRef.current) qrFileInputRef.current.value = "";
+  };
+
+  const handlePaymentSave = async (event) => {
+    event.preventDefault();
+    try {
+      setPaymentSaving(true);
+      setPaymentMessage("");
+      setPaymentIsError(false);
+      const saveRes = await updatePaymentSettingApi(paymentForm);
+      const saved = mapPaymentFromApi(saveRes?.data?.setting);
+      setPaymentForm(saved);
+      setInitialPaymentForm(saved);
+      setQrPreviewSnapshot(saved);
+      setPaymentMessage("Lưu cấu hình thanh toán thành công.");
+      if (qrFileInputRef.current) qrFileInputRef.current.value = "";
+    } catch (error) {
+      console.error("Update payment setting failed:", error);
+      setPaymentIsError(true);
+      setPaymentMessage(
+        getErrorDetail(error, "Lưu cấu hình thanh toán thất bại"),
+      );
+    } finally {
+      setPaymentSaving(false);
+    }
   };
 
   const handleLogoUpload = (event) => {
@@ -252,7 +384,62 @@ function AdminSettingsPage() {
       fontWeight: 600,
       margin: 0,
     },
+    paymentLayout: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+      gap: "20px",
+      alignItems: "start",
+    },
+    paymentPreviewColumn: {
+      maxWidth: "420px",
+    },
+    switchRow: {
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      cursor: "pointer",
+      userSelect: "none",
+    },
+    paymentStatusMessage: {
+      color: paymentIsError ? "#b42318" : "#175cd3",
+      fontWeight: 600,
+      margin: 0,
+    },
+    previewSectionTitle: {
+      fontSize: "13px",
+      color: "#475467",
+      fontWeight: 600,
+      margin: "0 0 14px",
+    },
+    qrUploadRow: {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "center",
+      gap: "10px",
+    },
+    hiddenFileInput: {
+      position: "absolute",
+      width: "1px",
+      height: "1px",
+      padding: 0,
+      margin: "-1px",
+      overflow: "hidden",
+      clip: "rect(0,0,0,0)",
+      whiteSpace: "nowrap",
+      border: 0,
+    },
+    chooseFileButton: {
+      border: "1px solid #d0d5dd",
+      borderRadius: "8px",
+      backgroundColor: "#fff",
+      color: "#344054",
+      padding: "10px 16px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
   };
+
+  const qrSnap = qrPreviewSnapshot ?? INITIAL_PAYMENT_FORM;
 
   return (
     <div style={styles.container}>
@@ -413,6 +600,172 @@ function AdminSettingsPage() {
             </button>
           </div>
         </div>
+      </form>
+
+      <form onSubmit={handlePaymentSave} style={{ ...styles.form, marginTop: "8px" }}>
+        <section style={styles.card}>
+          <h3 style={styles.cardTitle}>Thanh toán QR</h3>
+          <p style={styles.subtitle}>
+            Cấu hình hiển thị giống khối &quot;Quét mã QR để thanh toán&quot; trên trang Checkout.
+          </p>
+
+          <div style={styles.paymentLayout}>
+            <div style={{ display: "grid", gap: "14px" }}>
+              <label style={styles.switchRow}>
+                <input
+                  type="checkbox"
+                  checked={paymentForm.isQrEnabled}
+                  onChange={(e) =>
+                    setPaymentForm((prev) => ({
+                      ...prev,
+                      isQrEnabled: e.target.checked,
+                    }))
+                  }
+                  disabled={loading || paymentLoading}
+                />
+                <span style={styles.label}>Bật phương thức thanh toán QR</span>
+              </label>
+
+              <div style={styles.grid2}>
+                <div style={styles.field}>
+                  <label style={styles.label}>Ngân hàng</label>
+                  <input
+                    style={styles.input}
+                    value={paymentForm.bankName}
+                    onChange={handlePaymentChange("bankName")}
+                    placeholder="VD: MB BANK"
+                    disabled={loading || paymentLoading}
+                  />
+                </div>
+                <div style={styles.field}>
+                  <label style={styles.label}>Số tài khoản</label>
+                  <input
+                    style={styles.input}
+                    value={paymentForm.accountNumber}
+                    onChange={handlePaymentChange("accountNumber")}
+                    placeholder="Số TK"
+                    disabled={loading || paymentLoading}
+                  />
+                </div>
+                <div style={styles.field}>
+                  <label style={styles.label}>Chủ tài khoản</label>
+                  <input
+                    style={styles.input}
+                    value={paymentForm.accountName}
+                    onChange={handlePaymentChange("accountName")}
+                    placeholder="Tên chủ TK"
+                    disabled={loading || paymentLoading}
+                  />
+                </div>
+                <div style={{ ...styles.field, gridColumn: "1 / -1" }}>
+                  <label style={styles.label}>Nội dung chuyển khoản</label>
+                  <input
+                    style={styles.input}
+                    value={paymentForm.transferContent}
+                    onChange={handlePaymentChange("transferContent")}
+                    placeholder="Nội dung CK"
+                    disabled={loading || paymentLoading}
+                  />
+                </div>
+                <div style={{ ...styles.field, gridColumn: "1 / -1" }}>
+                  <label style={styles.label}>Upload QR</label>
+                  <div style={styles.qrUploadRow}>
+                    <input
+                      ref={qrFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleQrImageUpload}
+                      disabled={loading || paymentLoading}
+                      style={styles.hiddenFileInput}
+                      tabIndex={-1}
+                    />
+                    <button
+                      type="button"
+                      style={styles.chooseFileButton}
+                      disabled={loading || paymentLoading}
+                      onClick={() => qrFileInputRef.current?.click()}
+                      aria-label="Chọn tệp ảnh QR"
+                    >
+                      Chọn tệp
+                    </button>
+                    {paymentForm.qrImage ? (
+                      <button
+                        type="button"
+                        onClick={handleClearQrImage}
+                        style={styles.deleteLogoButton}
+                        disabled={loading || paymentLoading}
+                      >
+                        Xóa ảnh QR
+                      </button>
+                    ) : null}
+                  </div>
+                  <span style={{ fontSize: "12px", color: "#98a2b3" }}>
+                    Không chọn ảnh = dùng mã QR tự động (theo bản đã lưu trong xem trước).
+                  </span>
+                </div>
+              </div>
+
+              <div style={styles.actionRow}>
+                <p style={styles.paymentStatusMessage}>{paymentMessage}</p>
+                <div style={styles.actionButtons}>
+                  <button
+                    type="button"
+                    onClick={handlePaymentCancel}
+                    disabled={loading || paymentLoading || paymentSaving}
+                    style={styles.cancelButton}
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || paymentLoading || paymentSaving}
+                    style={styles.saveButton}
+                  >
+                    {paymentSaving ? "Đang lưu..." : "Lưu cấu hình"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style={styles.paymentPreviewColumn}>
+              <p style={styles.previewSectionTitle}>Xem trước</p>
+              <div className="qr-box">
+                <h3>Quét mã QR để thanh toán</h3>
+
+                <div className="qr-code-wrap">
+                  {qrSnap.qrImage?.trim() ? (
+                    <img
+                      src={qrSnap.qrImage.trim()}
+                      alt="QR thanh toán"
+                      className="qr-static-image"
+                    />
+                  ) : (
+                    <QRCodeCanvas value={previewQrContent} size={220} />
+                  )}
+                </div>
+
+                <div className="qr-info">
+                  <p>
+                    <strong>Ngân hàng:</strong> {qrSnap.bankName || "—"}
+                  </p>
+                  <p>
+                    <strong>Số tài khoản:</strong> {qrSnap.accountNumber || "—"}
+                  </p>
+                  <p>
+                    <strong>Chủ tài khoản:</strong> {qrSnap.accountName || "—"}
+                  </p>
+                  <p>
+                    <strong>Nội dung:</strong> {qrSnap.transferContent || "—"}
+                  </p>
+                </div>
+
+                <button type="button" className="checkout-btn" tabIndex={-1} disabled>
+                  Tôi đã thanh toán
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
       </form>
     </div>
   );
