@@ -49,9 +49,12 @@ export function AuthProvider({ children }) {
   const register = async (formData) => {
     const res = await registerApi(formData);
 
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-    setUser(res.data.user);
+    // ❌ KHÔNG ép token nếu backend không có
+    // chỉ lưu user nếu backend trả về
+    if (res.data.user) {
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      setUser(res.data.user);
+    }
 
     return res.data;
   };

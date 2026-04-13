@@ -31,11 +31,15 @@ function RegisterPage() {
     setErrorText("");
 
     try {
-      await register(formData);
-      setMessage("Đăng ký thành công");
-      navigate("/");
+      const res = await register(formData);
+
+      setMessage(res.message || "Đăng ký thành công");
+
+      navigate("/login");
     } catch (error) {
-      setErrorText(error.response?.data?.message || "Đăng ký thất bại");
+      setErrorText(
+        error.response?.data?.message || "Đăng ký thất bại"
+      );
     }
   };
 
