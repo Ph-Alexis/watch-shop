@@ -103,7 +103,10 @@ function Navbar() {
                 {genderCategories.length === 0 ? (
                   productCategoryFallback.length > 0 ? (
                     productCategoryFallback.map((name) => (
-                      <Link key={name} to={buildProductFilterLink("category", name)}>
+                      <Link
+                        key={name}
+                        to={buildProductFilterLink("category", name)}
+                      >
                         {name}
                       </Link>
                     ))
@@ -114,7 +117,10 @@ function Navbar() {
                   genderCategories.map((item) => (
                     <Link
                       key={item._id}
-                      to={buildProductFilterLink("category", item.value || item.slug)}
+                      to={buildProductFilterLink(
+                        "category",
+                        item.value || item.slug,
+                      )}
                     >
                       {item.name}
                     </Link>
@@ -126,7 +132,10 @@ function Navbar() {
                 {brandCategories.length === 0 ? (
                   productBrandFallback.length > 0 ? (
                     productBrandFallback.map((name) => (
-                      <Link key={name} to={buildProductFilterLink("brand", name)}>
+                      <Link
+                        key={name}
+                        to={buildProductFilterLink("brand", name)}
+                      >
                         {name}
                       </Link>
                     ))
@@ -137,7 +146,10 @@ function Navbar() {
                   brandCategories.map((item) => (
                     <Link
                       key={item._id}
-                      to={buildProductFilterLink("brand", item.value || item.name)}
+                      to={buildProductFilterLink(
+                        "brand",
+                        item.value || item.name,
+                      )}
                     >
                       {item.name}
                     </Link>
@@ -162,14 +174,19 @@ function Navbar() {
               Login
             </Link>
           ) : (
-            <>
-              <Link to="/profile" className="nav-auth-link">
-                {user.fullName || "Account"}
-              </Link>
-              <button onClick={handleLogout} className="logout-btn">
-                Logout
-              </button>
-            </>
+            <div className="user-dropdown">
+              <img
+                src={user?.avatar || "https://i.pravatar.cc/40"}
+                className="user-avatar"
+                alt="user"
+              />
+
+              <div className="user-menu">
+                <Link to="/profile">Profile</Link>
+                {user?.role === "admin" && <Link to="/admin">Admin</Link>}
+                <button onClick={handleLogout}>Logout</button>
+              </div>
+            </div>
           )}
         </div>
       </div>

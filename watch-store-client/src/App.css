@@ -982,3 +982,77 @@ input[type="number"] {
     height: 260px;
   }
 }
+
+/* ================= USER DROPDOWN (PRO STYLE) ================= */
+
+.user-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* avatar */
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid #e5e7eb;
+  transition: 0.25s;
+}
+
+.user-avatar:hover {
+  transform: scale(1.05);
+  border-color: #facc15;
+}
+
+/* menu */
+.user-menu {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  background: #ffffff;
+  min-width: 160px;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  display: none;
+  flex-direction: column;
+  z-index: 999;
+}
+
+/* hover show menu */
+.user-dropdown:hover .user-menu {
+  display: flex;
+  animation: fadeIn 0.15s ease;
+}
+
+/* items */
+.user-menu a,
+.user-menu button {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: #111827;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.user-menu a:hover,
+.user-menu button:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* logout đỏ */
+.user-menu button {
+  color: #ef4444;
+}
+
+.user-menu button:hover {
+  background: #fee2e2;
+}
+

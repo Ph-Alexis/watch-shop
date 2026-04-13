@@ -84,6 +84,11 @@ function LoginPage() {
           <p style={{ marginTop: "12px" }}>
             Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
           </p>
+          <div style={{ textAlign: "right", marginTop: "6px" }}>
+            <Link to="/forgot-password" style={{ fontSize: "14px" }}>
+              Quên mật khẩu?
+            </Link>
+          </div>
         </form>
 
         {message && <p className="success-text">{message}</p>}

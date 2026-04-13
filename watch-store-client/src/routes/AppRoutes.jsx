@@ -14,11 +14,12 @@ import ProfilePage from "../pages/customer/ProfilePage";
 import OrdersPage from "../pages/customer/OrdersPage";
 import OrderDetailPage from "../pages/customer/OrderDetailPage";
 import OrderSuccessPage from "../pages/customer/OrderSuccessPage";
-
 import NotFoundPage from "../pages/NotFoundPage";
-
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import AdminRoute from "../components/common/AdminRoute";
+
+import ForgotPassword from "../pages/customer/ForgotPassword";
+import ResetPassword from "../pages/customer/ResetPassword";
 
 function AppRoutes() {
   return (
@@ -30,7 +31,8 @@ function AppRoutes() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route
           path="/cart"
           element={

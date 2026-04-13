@@ -6,6 +6,7 @@ const ALLOWED_ORDER_STATUS = [
   "delivered",
   "cancelled",
 ];
+const sendEmail = require("../config/email");
 
 const createOrder = async (req, res) => {
   try {
@@ -42,6 +43,38 @@ const createOrder = async (req, res) => {
       orderStatus: "pending",
       totalAmount,
     });
+
+    const userEmail = req.user.email;
+    const formatPrice = (price) => price.toLocaleString("vi-VN") + "đ";
+    try {
+      await sendEmail(
+        userEmail,
+        "Đặt hàng thành công 🎉",
+        `
+      <h2>Cảm ơn bạn đã đặt hàng!</h2>
+      <p><strong>Mã đơn hàng:</strong> ${order._id}</p>
+
+      <h3>Thông tin đơn hàng:</h3>
+      <ul>
+        ${order.items
+          .map(
+            (item) => `
+              <li>
+                ${item.name} - SL: ${item.quantity} - Giá: ${formatPrice(item.price)}
+              </li>
+            `,
+          )
+          .join("")}
+      </ul>
+
+      <h3>Tổng tiền: ${formatPrice(order.totalAmount)}</h3>
+
+      <p>Chúng tôi sẽ liên hệ sớm nhất 🚀</p>
+    `,
+      );
+    } catch (err) {
+      console.log("Send mail error:", err);
+    }
 
     return res.status(201).json({
       message: "Create order successfully",

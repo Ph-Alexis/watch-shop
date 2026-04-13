@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
+    
+    resetToken: String,
+    resetTokenExpire: Date,
+
     phone: {
       type: String,
       default: "",

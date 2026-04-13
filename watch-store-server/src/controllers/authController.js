@@ -1,5 +1,7 @@
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
+const crypto = require("crypto");
+const sendEmail = require("../config/email");
 
 const register = async (req, res) => {
   try {
@@ -99,6 +101,70 @@ const login = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "Email không tồn tại" });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    user.resetToken = resetToken;
+    user.resetTokenExpire = Date.now() + 15 * 60 * 1000;
+
+    await user.save();
+
+    const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+    await sendEmail(
+      user.email,
+      "Reset Password",
+      `<h3>Click vào link để reset password:</h3>
+       <a href="${resetLink}">${resetLink}</a>`,
+    );
+
+    return res.json({ message: "Đã gửi email reset password" });
+  } catch (error) {
+    console.error("FORGOT ERROR:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+const bcrypt = require("bcryptjs");
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    const user = await User.findOne({
+      resetToken: token,
+      resetTokenExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Token không hợp lệ hoặc hết hạn",
+      });
+    }
+
+    user.password = newPassword;
+
+    user.resetToken = undefined;
+    user.resetTokenExpire = undefined;
+
+    await user.save();
+
+    return res.json({ message: "Đổi mật khẩu thành công" });
+  } catch (error) {
+    console.error("RESET ERROR:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 const me = async (req, res) => {
   try {
     return res.json(req.user);
@@ -114,4 +180,6 @@ module.exports = {
   register,
   login,
   me,
+  forgotPassword,
+  resetPassword
 };
