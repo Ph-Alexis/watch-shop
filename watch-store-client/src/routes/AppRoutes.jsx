@@ -11,7 +11,7 @@ import Contact from "../pages/customer/Contact";
 import LoginPage from "../pages/customer/LoginPage";
 import RegisterPage from "../pages/customer/RegisterPage";
 import ProfilePage from "../pages/customer/ProfilePage";
-import OrdersPage from "../pages/customer/OrdersPage";
+import MyOrders from "../pages/customer/MyOrders";
 import OrderDetailPage from "../pages/customer/OrderDetailPage";
 import OrderSuccessPage from "../pages/customer/OrderSuccessPage";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -64,7 +64,7 @@ function AppRoutes() {
           path="/orders"
           element={
             <ProtectedRoute>
-              <OrdersPage />
+              <MyOrders />
             </ProtectedRoute>
           }
         />

@@ -183,6 +183,7 @@ function Navbar() {
 
               <div className="user-menu">
                 <Link to="/profile">Profile</Link>
+                <Link to="/orders">My Orders</Link>
                 {user?.role === "admin" && <Link to="/admin">Admin</Link>}
                 <button onClick={handleLogout}>Logout</button>
               </div>
